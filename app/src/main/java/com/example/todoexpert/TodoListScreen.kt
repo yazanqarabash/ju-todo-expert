@@ -8,8 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -27,52 +26,31 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoListScreen(navController: NavController, modifier: Modifier = Modifier) {
-    val todoList = TodoRepository.getTodoList()
-    val image = painterResource(R.drawable.androidparty)
+fun TodoListScreen(navController: NavController) {
+    val todoList = TodoRepository.todoList
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Todo List") })
-        },
-        bottomBar = {
-            BottomAppBar {
-                Text("Todo Expert App")
-            }
-        },
+        topBar = { TopAppBar(title = { Text("Todo List") }) },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("create") }
-            ) {
+            FloatingActionButton(onClick = { navController.navigate("create") }) {
                 Icon(Icons.Filled.Add, contentDescription = "Create")
             }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             Image(
-                painter = image,
-                contentDescription = null,
+                painter = painterResource(R.drawable.androidparty),
+                contentDescription = "Todo list background image",
                 contentScale = ContentScale.Crop,
-                alpha = 0.5F,
-                modifier = Modifier
+                alpha = 0.5F
             )
-            LazyColumn(modifier = Modifier) {
-                items(todoList) {
-                        todo ->
-                    ListItem(
-                        modifier = Modifier.clickable { navController.navigate("edit/${todo.id}") },
-                        leadingContent = {
-                            Icon(Icons.Rounded.AccountCircle, contentDescription = "User")
-                        },
-                        headlineContent = { Text(todo.title) },
-                        supportingContent = { Text(todo.subtitle) },
-                        trailingContent = {
-                            Checkbox(
-                                checked = todo.check.value,
-                                onCheckedChange = {
-                                    todo.check.value = !todo.check.value
-                                }
-                            )
+            LazyColumn {
+                items(todoList) { todo ->
+                    TodoListItem(
+                        todo = todo,
+                        onItemClick = { navController.navigate("edit/${todo.id}") },
+                        onCheckedChange = {
+                            todo.isChecked.value = !todo.isChecked.value
                         }
                     )
                     HorizontalDivider()
@@ -80,4 +58,26 @@ fun TodoListScreen(navController: NavController, modifier: Modifier = Modifier) 
             }
         }
     }
+}
+
+@Composable
+fun TodoListItem(
+    todo: Todo,
+    onItemClick: () -> Unit,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    ListItem(
+        modifier = Modifier.clickable(onClick = onItemClick),
+        leadingContent = {
+            Icon(Icons.Rounded.MoreVert, contentDescription = "Editable Icon")
+        },
+        headlineContent = { Text(todo.title) },
+        supportingContent = { Text(todo.subtitle) },
+        trailingContent = {
+            Checkbox(
+                checked = todo.isChecked.value,
+                onCheckedChange = onCheckedChange
+            )
+        }
+    )
 }

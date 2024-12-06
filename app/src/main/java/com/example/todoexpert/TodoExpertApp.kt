@@ -9,35 +9,61 @@ import androidx.navigation.compose.rememberNavController
 import java.util.UUID
 
 object TodoRepository {
-    private val todoList = mutableListOf<Todo>()
+    private val _todoList = mutableListOf(
+        Todo(
+            title = "Buy groceries",
+            subtitle = "Milk, Bread, Eggs, and Fruits"
+        ),
+        Todo(
+            title = "Study Jetpack Compose",
+            subtitle = "Complete the Todo app project"
+        ),
+        Todo(
+            title = "Workout",
+            subtitle = "Go for a 30-minute run"
+        ),
+        Todo(
+            title = "Call dad",
+            subtitle = "Wish him a happy birthday"
+        )
+    )
+    val todoList: List<Todo> get() = _todoList
 
-    fun getTodoList() = todoList
-    fun addTodo(todo: Todo) = todoList.add(todo)
-    fun updateTodo(updatedTodo: Todo) {
-        todoList.replaceAll { if (it.id == updatedTodo.id) updatedTodo else it }
+    fun addTodo(todo: Todo) {
+        _todoList.add(todo)
     }
-    fun deleteTodoById(todoId: String) = todoList.removeIf { it.id == todoId }
-    fun getTodoById(todoId: String?) = todoList.find { it.id == todoId }
+
+    fun updateTodo(updatedTodo: Todo) {
+        val index = _todoList.indexOfFirst { it.id == updatedTodo.id }
+        if (index != -1) _todoList[index] = updatedTodo
+    }
+
+    fun deleteTodoById(todoId: String) {
+        _todoList.removeIf { it.id == todoId }
+    }
+
+    fun getTodoById(todoId: String?): Todo? {
+        return _todoList.find { it.id == todoId }
+    }
 }
 
 data class Todo(
     val id: String = UUID.randomUUID().toString(),
     var title: String,
     var subtitle: String,
-    val check: MutableState<Boolean> = mutableStateOf(false)
+    val isChecked: MutableState<Boolean> = mutableStateOf(false)
 )
 
 @Composable
 fun TodoExpertApp() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "todoList") {
-        composable("todoList") { TodoListScreen(navController) }
+    NavHost(navController = navController, startDestination = "list") {
+        composable("list") { TodoListScreen(navController) }
         composable("create") { CreateEditTodoScreen(navController, null) }
         composable("edit/{todoId}") { backStackEntry ->
             val todoId = backStackEntry.arguments?.getString("todoId")
-            val todo = TodoRepository.getTodoById(todoId)
-            CreateEditTodoScreen(navController, todo)
+            CreateEditTodoScreen(navController, todoId)
         }
     }
 }
